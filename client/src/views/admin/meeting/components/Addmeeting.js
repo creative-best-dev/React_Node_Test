@@ -68,7 +68,6 @@ const AddMeeting = (props) => {
     initialValues: initialValues,
     validationSchema: MeetingSchema,
     onSubmit: (values, { resetForm }) => {
-      console.log(values);
       AddData();
       resetForm();
     },
@@ -83,15 +82,17 @@ const AddMeeting = (props) => {
     setFieldValue,
   } = formik;
 
-  const AddData = async () => {
+  const AddData = () => {
     setIsLoding(true);
     try {
       dispatch(fetchMeetingAddData(values));
+      props.onClose();
       setIsLoding(false);
     } catch (error) {
       setIsLoding(false);
       toast.error("Something Went Wrong");
     }
+    setIsLoding(false);
   };
 
   const fetchAllData = async () => {};

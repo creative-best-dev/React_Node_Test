@@ -22,8 +22,6 @@ import CommonDeleteModel from "components/commonDeleteModel";
 import { FaFilePdf } from "react-icons/fa";
 import html2pdf from "html2pdf.js";
 const View = () => {
-  const param = useParams();
-
   const [data, setData] = useState();
   const [deleteMany, setDeleteMany] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
@@ -71,19 +69,17 @@ const View = () => {
     }
   };
 
-  const handleDeleteMeeting = async (ids) => {
-    try {
-      setIsLoding(true);
-      let response = await deleteApi("api/meeting/delete/", params.id);
+  const handleDeleteMeeting = () => {
+    console.log(params.id);
+    setIsLoding(true);
+    deleteApi("api/meeting/delete/", params.id).then((response) => {
+      console.log(response);
       if (response.status === 200) {
         setDeleteMany(false);
         navigate(-1);
       }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoding(false);
-    }
+    });
+    setIsLoding(false);
   };
 
   const [permission, contactAccess, leadAccess] = HasAccess([
@@ -308,7 +304,7 @@ const View = () => {
                       <Button
                         size="sm"
                         style={{ background: "red.800" }}
-                        onClick={() => setDeleteMany(true)}
+                        onClick={handleDeleteMeeting}
                         leftIcon={<DeleteIcon />}
                         colorScheme="red"
                       >
@@ -329,7 +325,7 @@ const View = () => {
         isOpen={deleteMany}
         onClose={() => setDeleteMany(false)}
         type="Meetings"
-        handleDeleteData={handleDeleteMeeting}
+        handleDeleteData={(a) => handleDeleteMeeting()}
         ids={params.id}
       />
     </>
