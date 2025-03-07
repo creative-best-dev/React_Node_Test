@@ -92,17 +92,20 @@ const index = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 const view = async (req, res) => {
   try {
     let result = await MeetingHistory.findOne({ _id: req.params.id });
 
     if (!result) return res.status(404).json({ message: "No data found." });
 
+    console.log("Meeting Found:", result); // Debugging output
+
     let response = await MeetingHistory.aggregate([
       { $match: { _id: result._id } },
       {
         $lookup: {
-          from: "Contacts",
+          from: "Contacts", // Check if this is the correct collection name
           localField: "attendes",
           foreignField: "_id",
           as: "attendesData",
@@ -110,7 +113,7 @@ const view = async (req, res) => {
       },
       {
         $lookup: {
-          from: "Leads",
+          from: "Leads", // Check if this is the correct collection name
           localField: "attendesLead",
           foreignField: "_id",
           as: "attendesLeadData",
@@ -118,7 +121,7 @@ const view = async (req, res) => {
       },
       {
         $lookup: {
-          from: "User",
+          from: "User", // Ensure 'User' is the correct collection name in MongoDB
           localField: "createBy",
           foreignField: "_id",
           as: "creator",
@@ -145,11 +148,16 @@ const view = async (req, res) => {
           createByUsername: 1,
           createByFullName: 1,
           timestamp: 1,
+          location: 1,
+          related: 1,
+          notes: 1,
           attendesData: 1, // Returns details of Contacts attending
           attendesLeadData: 1, // Returns details of Leads attending
         },
       },
     ]);
+
+    console.log("Aggregation Result:", response); // Debugging output
 
     if (!response.length)
       return res.status(404).json({ message: "Meeting not found." });
@@ -161,7 +169,27 @@ const view = async (req, res) => {
   }
 };
 
-const deleteData = async (req, res) => {};
+const deleteData = async (req, res) => {
+  try {
+    const meetingId = req.params.id;
+
+    // Find the meeting and update the deleted field to true
+    const result = await MeetingHistory.findByIdAndUpdate(
+      meetingId,
+      { deleted: true }, // Soft delete by marking it as deleted
+      { new: true } // Return the updated document
+    );
+
+    if (!result) {
+      return res.status(404).json({ message: "Meeting not found" });
+    }
+
+    res.status(200).json({ message: "Meeting marked as deleted", result });
+  } catch (err) {
+    console.error("Error deleting meeting:", err);
+    res.status(500).json({ error: "Failed to delete meeting" });
+  }
+};
 
 const deleteMany = async (req, res) => {};
 
